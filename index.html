@@ -144,38 +144,15 @@
                 bullet.y += 5;
                 ctx.fillRect(bullet.x, bullet.y, 5, 10);
                 if (bullet.y > 370 && bullet.x > playerX && bullet.x < playerX + 30) {
-                    gameOver();
+                    location.href = "lose.html";
                 }
             });
 
             if (enemies.every(enemy => !enemy.alive)) {
-                winGame();
+                location.href = "win.html";
             }
 
             requestAnimationFrame(updateGame);
-        }
-
-        function triggerQuiz() {
-            document.getElementById("question").innerText = "Is Jose Rizal the national hero of the Philippines?";
-            document.getElementById("quiz-container").style.display = "block";
-        }
-
-        function answerQuiz(answer) {
-            document.getElementById("quiz-container").style.display = "none";
-        }
-
-        function gameOver() {
-            alert("Game Over! Your Score: " + score);
-            location.reload();
-        }
-
-        function winGame() {
-            alert("You Win! Your Score: " + score);
-            if (score > highscore) {
-                highscore = score;
-                localStorage.setItem("highscore", highscore);
-            }
-            location.reload();
         }
     </script>
 </body>
