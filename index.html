@@ -36,14 +36,21 @@
         }
         #menu button:hover { background: #0056b3; }
 
-        /* Score Display */
-        #scoreDisplay {
-            position: absolute;
-            top: 10px;
+        /* Quiz Styling */
+        #quiz {
+            display: none;
+            position: fixed;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            font-size: 20px;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
         }
+        #quiz button { margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -51,7 +58,15 @@
         <h1>Pinoy Space Invaders</h1>
         <button onclick="startGame()">Play</button>
     </div>
-    <div id="scoreDisplay">Score: 0</div>
+    
+    <div id="quiz">
+        <h2 id="question"></h2>
+        <button onclick="checkAnswer(0)"></button>
+        <button onclick="checkAnswer(1)"></button>
+        <button onclick="checkAnswer(2)"></button>
+        <button onclick="checkAnswer(3)"></button>
+    </div>
+    
     <canvas id="gameCanvas" width="600" height="400"></canvas>
     
     <script>
@@ -61,15 +76,40 @@
         let bullets = [];
         let enemies = [];
         let enemyBullets = [];
-        let score = 0;
-
+        
+        const quizData = [
+            { question: "What is the capital of the Philippines?", options: ["Cebu", "Davao", "Manila", "Baguio"], answer: 2 },
+            { question: "Who is the national hero of the Philippines?", options: ["Jose Rizal", "Andres Bonifacio", "Lapu-Lapu", "Emilio Aguinaldo"], answer: 0 }
+        ];
+        
         function startGame() {
             document.getElementById("menu").style.display = "none";
-            canvas.style.display = "block";
-            spawnEnemies();
-            updateGame();
+            document.getElementById("quiz").style.display = "block";
+            loadQuestion();
         }
-
+        
+        function loadQuestion() {
+            let q = quizData[Math.floor(Math.random() * quizData.length)];
+            document.getElementById("question").innerText = q.question;
+            let buttons = document.getElementById("quiz").getElementsByTagName("button");
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].innerText = q.options[i];
+            }
+            window.correctAnswer = q.answer;
+        }
+        
+        function checkAnswer(choice) {
+            if (choice === window.correctAnswer) {
+                document.getElementById("quiz").style.display = "none";
+                canvas.style.display = "block";
+                spawnEnemies();
+                updateGame();
+            } else {
+                alert("Wrong answer! Try again.");
+                loadQuestion();
+            }
+        }
+        
         function spawnEnemies() {
             enemies = [];
             for (let i = 0; i < 5; i++) {
@@ -78,7 +118,7 @@
                 }
             }
         }
-
+        
         function enemyShoot() {
             let aliveEnemies = enemies.filter(enemy => enemy.alive);
             if (aliveEnemies.length > 0) {
@@ -98,43 +138,16 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "white";
             ctx.fillRect(playerX, 370, 30, 20);
-
             bullets = bullets.filter(bullet => bullet.y > 0);
             bullets.forEach(bullet => {
                 bullet.y -= 5;
                 ctx.fillRect(bullet.x, bullet.y, 5, 10);
             });
-
             enemies.forEach(enemy => {
                 if (enemy.alive) {
                     ctx.fillRect(enemy.x, enemy.y, 40, 20);
                 }
             });
-
-            bullets.forEach((bullet, bIndex) => {
-                enemies.forEach((enemy) => {
-                    if (enemy.alive && bullet.y < enemy.y + 20 && bullet.x > enemy.x && bullet.x < enemy.x + 40) {
-                        enemy.alive = false;
-                        bullets.splice(bIndex, 1);
-                        score += 100;
-                        document.getElementById("scoreDisplay").innerText = "Score: " + score;
-                    }
-                });
-            });
-
-            enemyBullets = enemyBullets.filter(bullet => bullet.y < canvas.height);
-            enemyBullets.forEach(bullet => {
-                bullet.y += 5;
-                ctx.fillRect(bullet.x, bullet.y, 5, 10);
-                if (bullet.y > 370 && bullet.x > playerX && bullet.x < playerX + 30) {
-                    location.href = "lose.html";
-                }
-            });
-
-            if (enemies.every(enemy => !enemy.alive)) {
-                location.href = "win.html";
-            }
-
             requestAnimationFrame(updateGame);
         }
     </script>
