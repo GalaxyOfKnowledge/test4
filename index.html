@@ -3,18 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pinoy Space Invaders Quiz</title>
+    <title>Pinoy Space Invaders</title>
     <style>
-        body {
-            text-align: center;
-            background-color: black;
-            color: white;
-        }
-        canvas {
-            background-color: #111;
-            display: block;
-            margin: auto;
-        }
+        /* CSS for styling */
+        body { text-align: center; background-color: black; color: white; }
+        canvas { background-color: #111; display: block; margin: auto; }
         #quiz-container {
             display: none;
             position: fixed;
@@ -36,19 +29,15 @@
         <button onclick="answerQuiz(true)">True</button>
         <button onclick="answerQuiz(false)">False</button>
     </div>
-    
+
     <script>
+        // JavaScript for Game Logic
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         let playerX = 270;
         let bullets = [];
         let enemies = [{x: 50, y: 50}, {x: 150, y: 50}, {x: 250, y: 50}];
         let score = 0;
-        let quizActive = false;
-        const quizQuestions = [
-            { question: "Is Jose Rizal the national hero of the Philippines?", answer: true },
-            { question: "Does the Philippines have 7,641 islands?", answer: true }
-        ];
 
         document.addEventListener("keydown", (e) => {
             if (e.key === "ArrowLeft" && playerX > 0) playerX -= 20;
@@ -64,10 +53,7 @@
                 bullet.y -= 5;
                 ctx.fillRect(bullet.x, bullet.y, 5, 10);
                 enemies.forEach((enemy, eIndex) => {
-                    if (
-                        bullet.y < enemy.y + 20 &&
-                        bullet.x > enemy.x && bullet.x < enemy.x + 40
-                    ) {
+                    if (bullet.y < enemy.y + 20 && bullet.x > enemy.x && bullet.x < enemy.x + 40) {
                         enemies.splice(eIndex, 1);
                         bullets.splice(index, 1);
                         score += 100;
@@ -75,24 +61,19 @@
                     }
                 });
             });
-            enemies.forEach(enemy => {
-                ctx.fillRect(enemy.x, enemy.y, 40, 20);
-            });
+            enemies.forEach(enemy => { ctx.fillRect(enemy.x, enemy.y, 40, 20); });
             requestAnimationFrame(updateGame);
         }
-        
+
         function triggerQuiz() {
-            quizActive = true;
-            const quiz = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
-            document.getElementById("question").innerText = quiz.question;
+            document.getElementById("question").innerText = "Is Jose Rizal the national hero of the Philippines?";
             document.getElementById("quiz-container").style.display = "block";
         }
 
         function answerQuiz(answer) {
-            quizActive = false;
             document.getElementById("quiz-container").style.display = "none";
         }
-        
+
         updateGame();
     </script>
 </body>
