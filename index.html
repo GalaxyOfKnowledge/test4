@@ -5,9 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pinoy Space Invaders</title>
     <style>
-        /* CSS for styling */
-        body { text-align: center; background-color: black; color: white; }
-        canvas { background-color: #111; display: block; margin: auto; }
+        body { text-align: center; background-color: black; color: white; font-family: Arial, sans-serif; }
+        canvas { background-color: #111; display: none; margin: auto; border: 2px solid white; }
+        
+        /* Menu Styling */
+        #menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
+        }
+        #menu button {
+            display: block;
+            width: 200px;
+            margin: 10px auto;
+            padding: 12px;
+            font-size: 18px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #menu button:hover { background: #0056b3; }
+
+        /* Quiz Styling */
         #quiz-container {
             display: none;
             position: fixed;
@@ -18,26 +47,72 @@
             color: black;
             padding: 20px;
             border-radius: 10px;
+            text-align: center;
+        }
+
+        /* Score Display */
+        #scoreDisplay {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Pinoy Space Invaders Quiz</h1>
+    <div id="menu">
+        <h1>Pinoy Space Invaders</h1>
+        <button onclick="startGame()">Play</button>
+        <button onclick="showHighscore()">Highscore</button>
+        <button onclick="alert('Settings coming soon!')">Settings</button>
+    </div>
+    <div id="scoreDisplay">Score: 0 | Highscore: <span id="highscore">0</span></div>
     <canvas id="gameCanvas" width="600" height="400"></canvas>
     <div id="quiz-container">
         <p id="question"></p>
         <button onclick="answerQuiz(true)">True</button>
         <button onclick="answerQuiz(false)">False</button>
     </div>
-
+    
     <script>
-        // JavaScript for Game Logic
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         let playerX = 270;
         let bullets = [];
-        let enemies = [{x: 50, y: 50}, {x: 150, y: 50}, {x: 250, y: 50}];
+        let enemies = [];
+        let enemyBullets = [];
         let score = 0;
+        let highscore = localStorage.getItem("highscore") || 0;
+        document.getElementById("highscore").innerText = highscore;
+
+        function startGame() {
+            document.getElementById("menu").style.display = "none";
+            canvas.style.display = "block";
+            spawnEnemies();
+            updateGame();
+        }
+
+        function showHighscore() {
+            alert("Highscore: " + highscore);
+        }
+
+        function spawnEnemies() {
+            enemies = [];
+            for (let i = 0; i < 5; i++) {
+                for (let j = 0; j < 3; j++) {
+                    enemies.push({ x: 50 + i * 100, y: 50 + j * 50, alive: true });
+                }
+            }
+        }
+
+        function enemyShoot() {
+            let shooter = enemies[Math.floor(Math.random() * enemies.length)];
+            if (shooter && shooter.alive) {
+                enemyBullets.push({ x: shooter.x + 15, y: shooter.y + 20 });
+            }
+        }
+        setInterval(enemyShoot, 1000);
 
         document.addEventListener("keydown", (e) => {
             if (e.key === "ArrowLeft" && playerX > 0) playerX -= 20;
@@ -49,19 +124,34 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "white";
             ctx.fillRect(playerX, 370, 30, 20);
+
             bullets.forEach((bullet, index) => {
                 bullet.y -= 5;
                 ctx.fillRect(bullet.x, bullet.y, 5, 10);
-                enemies.forEach((enemy, eIndex) => {
-                    if (bullet.y < enemy.y + 20 && bullet.x > enemy.x && bullet.x < enemy.x + 40) {
-                        enemies.splice(eIndex, 1);
+                enemies.forEach((enemy) => {
+                    if (bullet.y < enemy.y + 20 && bullet.x > enemy.x && bullet.x < enemy.x + 40 && enemy.alive) {
+                        enemy.alive = false;
                         bullets.splice(index, 1);
                         score += 100;
+                        document.getElementById("scoreDisplay").innerText = "Score: " + score + " | Highscore: " + highscore;
                         if (score % 200 === 0) triggerQuiz();
                     }
                 });
             });
-            enemies.forEach(enemy => { ctx.fillRect(enemy.x, enemy.y, 40, 20); });
+
+            enemies.forEach(enemy => { if (enemy.alive) ctx.fillRect(enemy.x, enemy.y, 40, 20); });
+            enemyBullets.forEach((bullet, index) => {
+                bullet.y += 5;
+                ctx.fillRect(bullet.x, bullet.y, 5, 10);
+                if (bullet.y > 370 && bullet.x > playerX && bullet.x < playerX + 30) {
+                    gameOver();
+                }
+            });
+
+            if (enemies.every(enemy => !enemy.alive)) {
+                winGame();
+            }
+
             requestAnimationFrame(updateGame);
         }
 
@@ -74,7 +164,19 @@
             document.getElementById("quiz-container").style.display = "none";
         }
 
-        updateGame();
+        function gameOver() {
+            alert("Game Over! Your Score: " + score);
+            location.reload();
+        }
+
+        function winGame() {
+            alert("You Win! Your Score: " + score);
+            if (score > highscore) {
+                highscore = score;
+                localStorage.setItem("highscore", highscore);
+            }
+            location.reload();
+        }
     </script>
 </body>
 </html>
