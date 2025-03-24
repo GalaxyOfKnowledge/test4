@@ -70,7 +70,56 @@
     </div>
     
     <script>
+        let canvas = document.getElementById("gameCanvas");
+        let ctx = canvas.getContext("2d");
+        let player = { x: 280, y: 350, width: 40, height: 20, speed: 5 };
+        let bullets = [];
+        let enemies = [];
         let score = 0;
+        let gameRunning = false;
+
+        function startGame() {
+            document.getElementById("menu").style.display = "none";
+            canvas.style.display = "block";
+            gameRunning = true;
+            gameLoop();
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = "white";
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function drawBullets() {
+            ctx.fillStyle = "red";
+            bullets.forEach((bullet, index) => {
+                bullet.y -= 5;
+                ctx.fillRect(bullet.x, bullet.y, 5, 10);
+                if (bullet.y < 0) bullets.splice(index, 1);
+            });
+        }
+
+        function drawEnemies() {
+            ctx.fillStyle = "green";
+            enemies.forEach((enemy, index) => {
+                enemy.y += 1;
+                ctx.fillRect(enemy.x, enemy.y, 30, 20);
+                if (enemy.y > canvas.height) enemies.splice(index, 1);
+            });
+        }
+
+        function detectCollisions() {
+            bullets.forEach((bullet, bIndex) => {
+                enemies.forEach((enemy, eIndex) => {
+                    if (bullet.x < enemy.x + 30 && bullet.x + 5 > enemy.x &&
+                        bullet.y < enemy.y + 20 && bullet.y + 10 > enemy.y) {
+                        bullets.splice(bIndex, 1);
+                        enemies.splice(eIndex, 1);
+                        updateScore(100);
+                    }
+                });
+            });
+        }
 
         function updateScore(points) {
             score += points;
@@ -79,6 +128,48 @@
                 showQuiz();
             }
         }
+
+        function showQuiz() {
+            gameRunning = false;
+            document.getElementById("quiz").style.display = "block";
+            document.getElementById("question").innerText = "What is the capital of the Philippines?";
+            let answers = ["Cebu", "Davao", "Manila", "Baguio"];
+            document.querySelectorAll("#quiz button").forEach((btn, index) => {
+                btn.innerText = answers[index];
+                btn.onclick = () => checkAnswer(index);
+            });
+        }
+
+        function checkAnswer(index) {
+            if (index === 2) {
+                alert("Correct! You may continue.");
+                document.getElementById("quiz").style.display = "none";
+                gameRunning = true;
+                gameLoop();
+            } else {
+                alert("Wrong answer. Try again!");
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawBullets();
+            drawEnemies();
+            detectCollisions();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowLeft" && player.x > 0) player.x -= player.speed;
+            if (e.key === "ArrowRight" && player.x < canvas.width - player.width) player.x += player.speed;
+            if (e.key === " ") bullets.push({ x: player.x + 17, y: player.y });
+        });
+
+        setInterval(() => {
+            if (gameRunning) enemies.push({ x: Math.random() * (canvas.width - 30), y: 0 });
+        }, 1000);
     </script>
 </body>
 </html>
