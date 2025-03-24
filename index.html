@@ -1,121 +1,99 @@
-// Basic Space Invaders with Trivia Quiz
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinoy Space Invaders Quiz</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: black;
+            color: white;
+        }
+        canvas {
+            background-color: #111;
+            display: block;
+            margin: auto;
+        }
+        #quiz-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pinoy Space Invaders Quiz</h1>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <div id="quiz-container">
+        <p id="question"></p>
+        <button onclick="answerQuiz(true)">True</button>
+        <button onclick="answerQuiz(false)">False</button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        let playerX = 270;
+        let bullets = [];
+        let enemies = [{x: 50, y: 50}, {x: 150, y: 50}, {x: 250, y: 50}];
+        let score = 0;
+        let quizActive = false;
+        const quizQuestions = [
+            { question: "Is Jose Rizal the national hero of the Philippines?", answer: true },
+            { question: "Does the Philippines have 7,641 islands?", answer: true }
+        ];
 
-// Player
-const player = {
-  x: canvas.width / 2 - 25,
-  y: canvas.height - 60,
-  width: 50,
-  height: 50,
-  speed: 5,
-  bullets: []
-};
-
-// Enemies
-const enemies = [];
-const enemyRows = 3;
-const enemyCols = 5;
-
-for (let r = 0; r < enemyRows; r++) {
-  for (let c = 0; c < enemyCols; c++) {
-    enemies.push({
-      x: c * 60 + 30,
-      y: r * 50 + 30,
-      width: 40,
-      height: 40,
-      alive: true
-    });
-  }
-}
-
-// Trivia Questions
-const triviaQuestions = [
-  { question: "What is the national fruit of the Philippines?", options: ["Mango", "Banana", "Durian"], answer: "Mango" },
-  { question: "Who is known as the 'Father of Philippine Revolution'?", options: ["Jose Rizal", "Andres Bonifacio", "Emilio Aguinaldo"], answer: "Andres Bonifacio" }
-];
-
-let currentQuestion = null;
-let isTriviaActive = false;
-
-// Controls
-document.addEventListener("keydown", (event) => {
-  if (event.key === "ArrowLeft" && player.x > 0) player.x -= player.speed;
-  if (event.key === "ArrowRight" && player.x < canvas.width - player.width) player.x += player.speed;
-  if (event.key === " " && !isTriviaActive) player.bullets.push({ x: player.x + 20, y: player.y, speed: 5 });
-});
-
-// Game Loop
-function update() {
-  if (!isTriviaActive) {
-    // Move bullets
-    player.bullets.forEach((bullet, index) => {
-      bullet.y -= bullet.speed;
-      if (bullet.y < 0) player.bullets.splice(index, 1);
-    });
-
-    // Check for enemy hits
-    enemies.forEach((enemy, eIndex) => {
-      if (enemy.alive) {
-        player.bullets.forEach((bullet, bIndex) => {
-          if (
-            bullet.x < enemy.x + enemy.width &&
-            bullet.x + 5 > enemy.x &&
-            bullet.y < enemy.y + enemy.height &&
-            bullet.y + 10 > enemy.y
-          ) {
-            enemies[eIndex].alive = false;
-            player.bullets.splice(bIndex, 1);
-          }
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowLeft" && playerX > 0) playerX -= 20;
+            if (e.key === "ArrowRight" && playerX < 540) playerX += 20;
+            if (e.key === " ") bullets.push({ x: playerX + 15, y: 350 });
         });
-      }
-    });
 
-    // Check if all enemies are defeated
-    if (enemies.every(enemy => !enemy.alive)) {
-      isTriviaActive = true;
-      showTrivia();
-    }
-  }
-  draw();
-  requestAnimationFrame(update);
-}
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.fillRect(playerX, 370, 30, 20);
+            bullets.forEach((bullet, index) => {
+                bullet.y -= 5;
+                ctx.fillRect(bullet.x, bullet.y, 5, 10);
+                enemies.forEach((enemy, eIndex) => {
+                    if (
+                        bullet.y < enemy.y + 20 &&
+                        bullet.x > enemy.x && bullet.x < enemy.x + 40
+                    ) {
+                        enemies.splice(eIndex, 1);
+                        bullets.splice(index, 1);
+                        score += 100;
+                        if (score % 200 === 0) triggerQuiz();
+                    }
+                });
+            });
+            enemies.forEach(enemy => {
+                ctx.fillRect(enemy.x, enemy.y, 40, 20);
+            });
+            requestAnimationFrame(updateGame);
+        }
+        
+        function triggerQuiz() {
+            quizActive = true;
+            const quiz = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+            document.getElementById("question").innerText = quiz.question;
+            document.getElementById("quiz-container").style.display = "block";
+        }
 
-// Draw game elements
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw player
-  ctx.fillStyle = "blue";
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-  
-  // Draw bullets
-  ctx.fillStyle = "red";
-  player.bullets.forEach(bullet => ctx.fillRect(bullet.x, bullet.y, 5, 10));
-  
-  // Draw enemies
-  ctx.fillStyle = "green";
-  enemies.forEach(enemy => {
-    if (enemy.alive) ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-  });
-}
-
-// Trivia Mechanism
-function showTrivia() {
-  currentQuestion = triviaQuestions[Math.floor(Math.random() * triviaQuestions.length)];
-  const answer = prompt(`${currentQuestion.question}\n${currentQuestion.options.join(" | ")}`);
-  if (answer === currentQuestion.answer) {
-    alert("Correct! You get a power-up!");
-  } else {
-    alert("Wrong answer! The game gets harder!");
-  }
-  resetGame();
-}
-
-// Reset Game for Next Round
-function resetGame() {
-  enemies.forEach(enemy => enemy.alive = true);
-  isTriviaActive = false;
-}
-
-update();
+        function answerQuiz(answer) {
+            quizActive = false;
+            document.getElementById("quiz-container").style.display = "none";
+        }
+        
+        updateGame();
+    </script>
+</body>
+</html>
