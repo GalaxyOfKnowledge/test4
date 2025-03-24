@@ -70,57 +70,12 @@
     </div>
     
     <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        let playerX = 270;
-        let bullets = [];
-        let enemies = [];
-        let enemyBullets = [];
         let score = 0;
-
-        const quizData = [
-            { question: "What is the capital of the Philippines?", options: ["Cebu", "Davao", "Manila", "Baguio"], answer: 2 },
-            { question: "Who is the national hero of the Philippines?", options: ["Jose Rizal", "Andres Bonifacio", "Lapu-Lapu", "Emilio Aguinaldo"], answer: 0 }
-        ];
-
-        function startGame() {
-            document.getElementById("menu").style.display = "none";
-            canvas.style.display = "block";
-            spawnEnemies();
-            updateGame();
-        }
-
-        function showQuiz() {
-            canvas.style.display = "none";
-            document.getElementById("quiz").style.display = "block";
-            loadQuestion();
-        }
-
-        function loadQuestion() {
-            let q = quizData[Math.floor(Math.random() * quizData.length)];
-            document.getElementById("question").innerText = q.question;
-            let buttons = document.getElementById("quiz").getElementsByTagName("button");
-            for (let i = 0; i < buttons.length; i++) {
-                buttons[i].innerText = q.options[i];
-            }
-            window.correctAnswer = q.answer;
-        }
-
-        function checkAnswer(choice) {
-            if (choice === window.correctAnswer) {
-                document.getElementById("quiz").style.display = "none";
-                canvas.style.display = "block";
-                updateGame();
-            } else {
-                alert("Wrong answer! Try again.");
-                loadQuestion();
-            }
-        }
 
         function updateScore(points) {
             score += points;
             document.getElementById("scoreDisplay").innerText = "Score: " + score;
-            if (score >= 200) {
+            if (score >= 2500) {
                 showQuiz();
             }
         }
