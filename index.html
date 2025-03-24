@@ -107,8 +107,9 @@
         }
 
         function enemyShoot() {
-            let shooter = enemies[Math.floor(Math.random() * enemies.length)];
-            if (shooter && shooter.alive) {
+            let aliveEnemies = enemies.filter(enemy => enemy.alive);
+            if (aliveEnemies.length > 0) {
+                let shooter = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
                 enemyBullets.push({ x: shooter.x + 15, y: shooter.y + 20 });
             }
         }
@@ -125,13 +126,13 @@
             ctx.fillStyle = "white";
             ctx.fillRect(playerX, 370, 30, 20);
 
-            bullets.forEach((bullet, index) => {
+            bullets.forEach((bullet, bIndex) => {
                 bullet.y -= 5;
                 ctx.fillRect(bullet.x, bullet.y, 5, 10);
-                enemies.forEach((enemy) => {
-                    if (bullet.y < enemy.y + 20 && bullet.x > enemy.x && bullet.x < enemy.x + 40 && enemy.alive) {
+                enemies.forEach((enemy, eIndex) => {
+                    if (enemy.alive && bullet.y < enemy.y + 20 && bullet.x > enemy.x && bullet.x < enemy.x + 40) {
                         enemy.alive = false;
-                        bullets.splice(index, 1);
+                        bullets.splice(bIndex, 1);
                         score += 100;
                         document.getElementById("scoreDisplay").innerText = "Score: " + score + " | Highscore: " + highscore;
                         if (score % 200 === 0) triggerQuiz();
@@ -143,12 +144,16 @@
             enemyBullets.forEach((bullet, index) => {
                 bullet.y += 5;
                 ctx.fillRect(bullet.x, bullet.y, 5, 10);
-                if (bullet.y > 370 && bullet.x > playerX && bullet.x < playerX + 30) {
+                if (
+                    bullet.y > 370 && bullet.y < 390 && 
+                    bullet.x > playerX && bullet.x < playerX + 30
+                ) {
+                    enemyBullets.splice(index, 1);
                     location.href = "lose.html";
                 }
             });
 
-            if (enemies.every(enemy => !enemy.alive)) {
+            if (enemies.filter(enemy => enemy.alive).length === 0) {
                 location.href = "win.html";
             }
 
